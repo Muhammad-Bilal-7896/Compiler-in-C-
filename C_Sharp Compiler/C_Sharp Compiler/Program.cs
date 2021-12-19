@@ -498,7 +498,7 @@ namespace C_Sharp_Compiler
 
         public Evaluator(ExpressionSyntax root)
         {
-            this._root = root;
+            _root = root;
         }
 
         public int Evaluate()
