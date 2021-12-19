@@ -24,7 +24,10 @@ namespace C_Sharp_Compiler_CC_Project
         PlusToken,
         MinusToken,
         StarToken,
-
+        SlashToken,
+        OpenParenthesisToken,
+        ClosedParenthesisToken,
+        BadToken
     }
 
     class SyntaxToken
@@ -33,17 +36,20 @@ namespace C_Sharp_Compiler_CC_Project
         {
             Kind = kind;
             Position = position;
+            Text = text;
+            Value = value; 
         }
 
         public SyntaxKind Kind { get; }
         public int Position { get; }
         public string Text { get; }
+        public object Value { get; }
     }
 
     class Lexer
     {
         private readonly string _text;
-        private int _position { get; }
+        private int _position;
 
         public Lexer(string text)
         {
@@ -55,13 +61,13 @@ namespace C_Sharp_Compiler_CC_Project
             get
             {
                 if (_position >= _text.Length)
-                    return "\0";
+                    return '\0';
 
                 return _text[_position];
             }
         }
 
-        public void Next()
+        private void Next()
         {
             _position++;
         }
@@ -103,16 +109,26 @@ namespace C_Sharp_Compiler_CC_Project
             }
             else if (Current == '-')
             {
-                return new SyntaxToken(SyntaxKind.PlusToken, _position++, "+", null);
+                return new SyntaxToken(SyntaxKind.MinusToken, _position++, "-", null);
             }
             else if (Current == '*')
             {
-                return new SyntaxToken(SyntaxKind.PlusToken, _position++, "+", null);
+                return new SyntaxToken(SyntaxKind.StarToken, _position++, "*", null);
             }
-            else if (Current == '+')
+            else if (Current == '/')
             {
-                return new SyntaxToken(SyntaxKind.PlusToken, _position++, "+", null);
+                return new SyntaxToken(SyntaxKind.SlashToken, _position++, "/", null);
             }
+            else if (Current == '(')
+            {
+                return new SyntaxToken(SyntaxKind.OpenParenthesisToken, _position++, "(", null);
+            }
+            else if (Current == ')')
+            {
+                return new SyntaxToken(SyntaxKind.ClosedParenthesisToken, _position++, ")", null);
+            }
+
+            return new SyntaxToken(SyntaxKind.BadToken,_position++,_text.Substring(_position - 1,1),null)
         }
     }
 
