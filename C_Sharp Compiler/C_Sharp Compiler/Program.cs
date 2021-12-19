@@ -95,8 +95,9 @@ namespace C_Sharp_Compiler
         CloseParenthesisToken,
         BadToken,
         EndOfFileToken,
-        NumberExpression,
+        LiteralExpression,
         BinaryExpression,
+        UnaryExpression,
         ParenthesizedExpression
     }
 
@@ -150,7 +151,7 @@ namespace C_Sharp_Compiler
             _position++;
         }
 
-        public SyntaxToken NextToken()
+        public SyntaxToken Lex()
         {
             // <numbers>
             // + - * / ( )
@@ -215,19 +216,19 @@ namespace C_Sharp_Compiler
     {
     }
 
-    sealed class NumberExpressionSyntax : ExpressionSyntax
+    sealed class LiteralExpressionSyntax : ExpressionSyntax
     {
-        public NumberExpressionSyntax(SyntaxToken numberToken)
+        public LiteralExpressionSyntax(SyntaxToken literalToken)
         {
-            NumberToken = numberToken;
+            LiteralToken = literalToken;
         }
 
-        public override SyntaxKind Kind => SyntaxKind.NumberExpression;
-        public SyntaxToken NumberToken { get; }
+        public override SyntaxKind Kind => SyntaxKind.LiteralExpression;
+        public SyntaxToken LiteralToken { get; }
 
         public override IEnumerable<SyntaxNode> GetChildren()
         {
-            yield return NumberToken;
+            yield return LiteralToken;
         }
     }
 
@@ -250,6 +251,26 @@ namespace C_Sharp_Compiler
             yield return Left;
             yield return OperatorToken;
             yield return Right;
+        }
+    }
+
+    //Adding Support for unary operator
+    sealed class UnaryExpressionSyntax : ExpressionSyntax
+    {
+        public UnaryExpressionSyntax(SyntaxToken operatorToken, ExpressionSyntax operand)
+        {
+            OperatorToken = operatorToken;
+            Operand = operand;
+        }
+
+        public override SyntaxKind Kind => SyntaxKind.UnaryExpression;
+        public SyntaxToken OperatorToken { get; }
+        public ExpressionSyntax Operand { get; }
+
+        public override IEnumerable<SyntaxNode> GetChildren()
+        {
+            yield return OperatorToken;
+            yield return Operand;
         }
     }
 
@@ -295,7 +316,43 @@ namespace C_Sharp_Compiler
         }
     }
 
-    class Parser
+    internal static class SyntaxFacts
+    {
+        public static int GetUnaryOperatorPrecedence(this SyntaxKind kind)
+        {
+            switch (kind)
+            {
+                case SyntaxKind.PlusToken:
+                case SyntaxKind.MinusToken:
+                    return 3;
+
+                default:
+                    return 0;
+            }
+        }
+
+
+        public static int GetBinaryOperatorPrecedence(this SyntaxKind kind)
+        {
+            switch (kind)
+            {
+                case SyntaxKind.StarToken:
+                case SyntaxKind.SlashToken:
+                    return 2;
+
+                case SyntaxKind.PlusToken:
+                case SyntaxKind.MinusToken:
+                    return 1;
+
+                default:
+                    return 0;
+
+            }
+        }
+
+    }
+
+    internal sealed class Parser
     {
         private readonly SyntaxToken[] _tokens;
 
@@ -310,7 +367,7 @@ namespace C_Sharp_Compiler
             SyntaxToken token;
             do
             {
-                token = lexer.NextToken();
+                token = lexer.Lex();
 
                 if (token.Kind != SyntaxKind.WhitespaceToken &&
                     token.Kind != SyntaxKind.BadToken)
@@ -352,47 +409,73 @@ namespace C_Sharp_Compiler
             return new SyntaxToken(kind, Current.Position, null, null);
         }
 
-        private ExpressionSyntax ParseExpression()
+        private ExpressionSyntax ParseExpression(int parentPrecedence = 0)
         {
-            return ParseTerm();
+            ExpressionSyntax left;
+            var unaryOperatorPrecedence = Current.Kind.GetUnaryOperatorPrecedence();
+            if (unaryOperatorPrecedence != 0 && unaryOperatorPrecedence >= parentPrecedence)
+            {
+                var operatorToken = NextToken();
+                var operand = ParseExpression(unaryOperatorPrecedence);
+                left = new UnaryExpressionSyntax(operatorToken, operand);
+            }
+            else
+            {
+                left = ParsePrimaryExpression();
+            }
+
+            while (true)
+            {
+                var precedence = Current.Kind.GetBinaryOperatorPrecedence();
+                if (precedence == 0 || precedence <= parentPrecedence)
+                    break;
+
+                var operatorToken = NextToken();
+                var right = ParseExpression(precedence);
+                left = new BinaryExpressionSyntax(left, operatorToken, right);
+            }
+
+            return left;
         }
+
+        
 
         public SyntaxTree Parse()
         {
-            var expresion = ParseTerm();
+            var expresion = ParseExpression();
             var endOfFileToken = Match(SyntaxKind.EndOfFileToken);
             return new SyntaxTree(_diagnostics, expresion, endOfFileToken);
         }
 
-        private ExpressionSyntax ParseTerm()
-        {
-            var left = ParseFactor();
+        //private ExpressionSyntax ParseTerm()
+        //{
+        //    var left = ParseFactor();
 
-            while (Current.Kind == SyntaxKind.PlusToken ||
-                   Current.Kind == SyntaxKind.MinusToken)
-            {
-                var operatorToken = NextToken();
-                var right = ParseFactor();
-                left = new BinaryExpressionSyntax(left, operatorToken, right);
-            }
+        //    while (Current.Kind == SyntaxKind.PlusToken ||
+        //           Current.Kind == SyntaxKind.MinusToken)
+        //    {
+        //        var operatorToken = NextToken();
+        //        var right = ParseFactor();
+        //        left = new BinaryExpressionSyntax(left, operatorToken, right);
+        //    }
 
-            return left;
-        }
+        //    return left;
+        //}
 
-        private ExpressionSyntax ParseFactor()
-        {
-            var left = ParsePrimaryExpression();
+        //private ExpressionSyntax ParseFactor()
+        //{
+        //    var left = ParsePrimaryExpression();
 
-            while (Current.Kind == SyntaxKind.StarToken ||
-                   Current.Kind == SyntaxKind.SlashToken)
-            {
-                var operatorToken = NextToken();
-                var right = ParsePrimaryExpression();
-                left = new BinaryExpressionSyntax(left, operatorToken, right);
-            }
+        //    while (Current.Kind == SyntaxKind.StarToken ||
+        //           Current.Kind == SyntaxKind.SlashToken)
+        //    {
+        //        var operatorToken = NextToken();
+        //        var right = ParsePrimaryExpression();
+        //        left = new BinaryExpressionSyntax(left, operatorToken, right);
+        //    }
 
-            return left;
-        }
+        //    return left;
+        //}
 
         private ExpressionSyntax ParsePrimaryExpression()
         {
@@ -405,7 +488,7 @@ namespace C_Sharp_Compiler
             }
 
             var numberToken = Match(SyntaxKind.NumberToken);
-            return new NumberExpressionSyntax(numberToken);
+            return new LiteralExpressionSyntax(numberToken);
         }
     }
 
@@ -425,8 +508,20 @@ namespace C_Sharp_Compiler
 
         private int EvaluateExpression(ExpressionSyntax node)
         {
-            if (node is NumberExpressionSyntax n)
-                return (int)n.NumberToken.Value;
+            if (node is LiteralExpressionSyntax n)
+                return (int)n.LiteralToken.Value;
+
+            if (node is UnaryExpressionSyntax u)
+            {
+                var operand = EvaluateExpression(u.Operand);
+
+                if (u.OperatorToken.Kind == SyntaxKind.PlusToken)
+                    return operand;
+                else if (u.OperatorToken.Kind == SyntaxKind.MinusToken)
+                    return -operand;
+                else
+                    throw new Exception($"Unexpected unary operator {u.OperatorToken.Kind}");
+            }
 
             if (node is BinaryExpressionSyntax b)
             {
