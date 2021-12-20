@@ -141,13 +141,12 @@ namespace C_Sharp_Compiler
                         return new ParenthesizedExpressionSyntax(left, expression, right);
                     }
 
-                case SyntaxKind.TrueKeyWord:
                 case SyntaxKind.FalseKeyWord:
+                case SyntaxKind.TrueKeyWord:
                     {
                         var keywordToken = NextToken();
-                        var value = Current.Kind == SyntaxKind.TrueKeyWord;
-
-                        return new LiteralExpressionSyntax(Current, value);
+                        var value = keywordToken.Kind == SyntaxKind.TrueKeyword;
+                        return new LiteralExpressionSyntax(keywordToken, value);
                     }
             }
 

@@ -22,6 +22,10 @@ namespace C_Sharp_Compiler
         ParenthesizedExpression,
         TrueKeyWord,
         FalseKeyWord,
-        IdentifierToken
+        IdentifierToken,
+        BangToken,
+        AmpersandAmpersandToken,
+        PipePipeToken,
+        TrueKeyword
     }
 }
