@@ -131,12 +131,24 @@ namespace C_Sharp_Compiler
 
         private ExpressionSyntax ParsePrimaryExpression()
         {
-            if (Current.Kind == SyntaxKind.OpenParenthesisToken)
+            switch (Current.Kind)
             {
-                var left = NextToken();
-                var expression = ParseExpression();
-                var right = Match(SyntaxKind.CloseParenthesisToken);
-                return new ParenthesizedExpressionSyntax(left, expression, right);
+                case SyntaxKind.OpenParenthesisToken:
+                    {
+                        var left = NextToken();
+                        var expression = ParseExpression();
+                        var right = Match(SyntaxKind.CloseParenthesisToken);
+                        return new ParenthesizedExpressionSyntax(left, expression, right);
+                    }
+
+                case SyntaxKind.TrueKeyWord:
+                case SyntaxKind.FalseKeyWord:
+                    {
+                        var keywordToken = NextToken();
+                        var value = Current.Kind == SyntaxKind.TrueKeyWord;
+
+                        return new LiteralExpressionSyntax(Current, value);
+                    }
             }
 
             var numberToken = Match(SyntaxKind.NumberToken);

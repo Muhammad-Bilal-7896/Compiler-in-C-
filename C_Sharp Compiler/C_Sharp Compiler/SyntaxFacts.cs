@@ -36,5 +36,18 @@ namespace C_Sharp_Compiler
 
             }
         }
+
+        public static SyntaxKind GetKeywordKind(string text)
+        {
+            switch(text)
+            {
+                case "true":
+                    return SyntaxKind.TrueKeyWord;
+                case "false":
+                    return SyntaxKind.FalseKeyWord;
+                default:
+                    return SyntaxKind.IdentifierToken;
+            }
+        }
     }
 }
