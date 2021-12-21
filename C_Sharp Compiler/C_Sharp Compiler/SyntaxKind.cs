@@ -26,6 +26,8 @@ namespace C_Sharp_Compiler
         BangToken,
         AmpersandAmpersandToken,
         PipePipeToken,
-        TrueKeyword
+        TrueKeyword,
+        EqualsEqualsToken,
+        BangEqualsToken
     }
 }

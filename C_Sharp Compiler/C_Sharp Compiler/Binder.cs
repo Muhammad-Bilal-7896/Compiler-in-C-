@@ -104,6 +104,8 @@ namespace C_Sharp_Compiler
 
             new BoundBinaryOperator(SyntaxKind.AmpersandAmpersandToken, BoundBinaryOperatorKind.LogicalAnd, typeof(bool)),
             new BoundBinaryOperator(SyntaxKind.PipePipeToken, BoundBinaryOperatorKind.LogicalOr, typeof(bool)),
+
+            //Dont know why this is here this should not be
             new BoundBinaryOperator(SyntaxKind.EqualsEqualsToken, BoundBinaryOperatorKind.Equals, typeof(bool)),
             new BoundBinaryOperator(SyntaxKind.BangEqualsToken, BoundBinaryOperatorKind.NotEquals, typeof(bool)),
         };
@@ -170,7 +172,7 @@ namespace C_Sharp_Compiler
         }
 
         public override BoundNodeKind Kind => BoundNodeKind.UnaryExpression;
-        public override Type Type => Left.Type;
+        public override Type Type => Op.ResultType;
         public BoundExpression Left { get; }
         public BoundBinaryOperator Op { get; }
         public BoundExpression Right { get; }
@@ -229,7 +231,7 @@ namespace C_Sharp_Compiler
         }
 
         public override BoundNodeKind Kind => BoundNodeKind.UnaryExpression;
-        public override Type Type => Operand.Type;
+        public override Type Type => Op.ResultType;
         public BoundUnaryOperator Op { get; }
         public BoundExpression Operand { get; }
     }
