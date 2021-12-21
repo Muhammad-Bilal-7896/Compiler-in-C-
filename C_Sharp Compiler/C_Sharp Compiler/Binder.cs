@@ -104,7 +104,7 @@ namespace C_Sharp_Compiler
                 }
             }
 
-            if (leftType == typeof(bool) && rightType == typeof(int))
+            if (leftType == typeof(bool) && rightType == typeof(bool))
             {
                 switch (kind)
                 {
@@ -117,84 +117,82 @@ namespace C_Sharp_Compiler
 
             return null;
         }
-
-
-        internal sealed class BoundBinaryExpression : BoundExpression
+    }
+    internal sealed class BoundBinaryExpression : BoundExpression
+    {
+        public BoundBinaryExpression(BoundExpression left, BoundBinaryOperatorKind operatorKind, BoundExpression right)
         {
-            public BoundBinaryExpression(BoundExpression left, BoundBinaryOperatorKind operatorKind, BoundExpression right)
-            {
-                Left = left;
-                OperatorKind = operatorKind;
-                Right = right;
-            }
-
-            public override BoundNodeKind Kind => BoundNodeKind.UnaryExpression;
-            public override Type Type => Left.Type;
-            public BoundExpression Left { get; }
-            public BoundBinaryOperatorKind OperatorKind { get; }
-            public BoundExpression Right { get; }
+            Left = left;
+            OperatorKind = operatorKind;
+            Right = right;
         }
 
+        public override BoundNodeKind Kind => BoundNodeKind.UnaryExpression;
+        public override Type Type => Left.Type;
+        public BoundExpression Left { get; }
+        public BoundBinaryOperatorKind OperatorKind { get; }
+        public BoundExpression Right { get; }
+    }
 
-        internal enum BoundBinaryOperatorKind
+
+    internal enum BoundBinaryOperatorKind
+    {
+        Addition,
+        Subtraction,
+        Multiplication,
+        Division,
+        LogicalAnd,
+        LogicalOr
+    }
+
+    internal abstract class BoundExpression : BoundNode
+    {
+        public abstract Type Type { get; }
+    }
+
+    internal sealed class BoundLiteralExpression : BoundExpression
+    {
+        public BoundLiteralExpression(object value)
         {
-            Addition,
-            Subtraction,
-            Multiplication,
-            Division,
-            LogicalAnd,
-            LogicalOr
+            Value = value;
         }
 
-        internal abstract class BoundExpression : BoundNode
+        public override BoundNodeKind Kind => BoundNodeKind.LiteralExpression;
+        public override Type Type => Value.GetType();
+        public object Value { get; }
+    }
+
+
+    internal abstract class BoundNode
+    {
+        public abstract BoundNodeKind Kind { get; }
+    }
+
+
+    internal enum BoundNodeKind
+    {
+        LiteralExpression,
+        UnaryExpression
+    }
+
+    internal sealed class BoundUnaryExpression : BoundExpression
+    {
+        public BoundUnaryExpression(BoundUnaryOperatorKind operatorKind, BoundExpression operand)
         {
-            public abstract Type Type { get; }
+            OperatorKind = operatorKind;
+            Operand = operand;
         }
 
-        internal sealed class BoundLiteralExpression : BoundExpression
-        {
-            public BoundLiteralExpression(object value)
-            {
-                Value = value;
-            }
+        public override BoundNodeKind Kind => BoundNodeKind.UnaryExpression;
+        public override Type Type => Operand.Type;
+        public BoundUnaryOperatorKind OperatorKind { get; }
+        public BoundExpression Operand { get; }
+    }
 
-            public override BoundNodeKind Kind => BoundNodeKind.LiteralExpression;
-            public override Type Type => Value.GetType();
-            public object Value { get; }
-        }
-
-
-        internal abstract class BoundNode
-        {
-            public abstract BoundNodeKind Kind { get; }
-        }
-
-
-        internal enum BoundNodeKind
-        {
-            LiteralExpression,
-            UnaryExpression
-        }
-
-        internal sealed class BoundUnaryExpression : BoundExpression
-        {
-            public BoundUnaryExpression(BoundUnaryOperatorKind operatorKind, BoundExpression operand)
-            {
-                OperatorKind = operatorKind;
-                Operand = operand;
-            }
-
-            public override BoundNodeKind Kind => BoundNodeKind.UnaryExpression;
-            public override Type Type => Operand.Type;
-            public BoundUnaryOperatorKind OperatorKind { get; }
-            public BoundExpression Operand { get; }
-        }
-
-        internal enum BoundUnaryOperatorKind
-        {
-            Identity,
-            Negation,
-            LogicalNegation
-        }
+    internal enum BoundUnaryOperatorKind
+    {
+        Identity,
+        Negation,
+        LogicalNegation
     }
 }

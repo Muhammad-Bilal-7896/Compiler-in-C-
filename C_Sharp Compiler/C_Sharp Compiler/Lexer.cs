@@ -92,53 +92,28 @@ namespace C_Sharp_Compiler
             switch (Current)
             {
                 case '+':
-                    {
-                        return new SyntaxToken(SyntaxKind.PlusToken, _position++, "+", null);
-                    }
-
+                    return new SyntaxToken(SyntaxKind.PlusToken, _position++, "+", null);
                 case '-':
-                    {
-                        return new SyntaxToken(SyntaxKind.MinusToken, _position++, "-", null);
-                    }
-
+                    return new SyntaxToken(SyntaxKind.MinusToken, _position++, "-", null);
                 case '*':
-                    {
-                        return new SyntaxToken(SyntaxKind.StarToken, _position++, "*", null);
-                    }
-
+                    return new SyntaxToken(SyntaxKind.StarToken, _position++, "*", null);
                 case '/':
-                    {
-                        return new SyntaxToken(SyntaxKind.SlashToken, _position++, "/", null);
-                    }
-
+                    return new SyntaxToken(SyntaxKind.SlashToken, _position++, "/", null);
                 case '(':
-                    {
-                        return new SyntaxToken(SyntaxKind.OpenParenthesisToken, _position++, "(", null);
-                    }
-
+                    return new SyntaxToken(SyntaxKind.OpenParenthesisToken, _position++, "(", null);
                 case ')':
-                    {
-                        return new SyntaxToken(SyntaxKind.CloseParenthesisToken, _position++, ")", null);
-                    }
-
+                    return new SyntaxToken(SyntaxKind.CloseParenthesisToken, _position++, ")", null);
                 case '!':
-                    {
-                        return new SyntaxToken(SyntaxKind.BangToken, _position++, "!", null);
-                    }
-
+                    return new SyntaxToken(SyntaxKind.BangToken, _position++, "!", null);
                 case '&':
-                    {
-                        if (Lookahead == '&')
-                            return new SyntaxToken(SyntaxKind.AmpersandAmpersandToken, _position += 2, "&&", null);
-                        break;
-                    }
-
+                     if (Lookahead == '&')
+                         return new SyntaxToken(SyntaxKind.AmpersandAmpersandToken, _position += 2, "&&", null);
+                     break;
                 case '|':
-                    {
-                        if (Lookahead == '|')
-                            return new SyntaxToken(SyntaxKind.PipePipeToken, _position += 2, "||", null);
-                        break;
-                    }
+                    if (Lookahead == '|')
+                        return new SyntaxToken(SyntaxKind.PipePipeToken, _position += 2, "||", null);
+                    break;
+
             }
 
             _diagnostics.Add($"ERROR: bad character input: '{Current}'");

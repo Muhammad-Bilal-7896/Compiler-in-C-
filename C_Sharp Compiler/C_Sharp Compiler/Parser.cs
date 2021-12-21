@@ -52,7 +52,7 @@ namespace C_Sharp_Compiler
             return current;
         }
 
-        private SyntaxToken Match(SyntaxKind kind)
+        private SyntaxToken MatchToken(SyntaxKind kind)
         {
             if (Current.Kind == kind)
                 return NextToken();
@@ -95,7 +95,7 @@ namespace C_Sharp_Compiler
         public SyntaxTree Parse()
         {
             var expresion = ParseExpression();
-            var endOfFileToken = Match(SyntaxKind.EndOfFileToken);
+            var endOfFileToken = MatchToken(SyntaxKind.EndOfFileToken);
             return new SyntaxTree(_diagnostics, expresion, endOfFileToken);
         }
 
@@ -137,7 +137,7 @@ namespace C_Sharp_Compiler
                     {
                         var left = NextToken();
                         var expression = ParseExpression();
-                        var right = Match(SyntaxKind.CloseParenthesisToken);
+                        var right = MatchToken(SyntaxKind.CloseParenthesisToken);
                         return new ParenthesizedExpressionSyntax(left, expression, right);
                     }
 
@@ -148,10 +148,12 @@ namespace C_Sharp_Compiler
                         var value = keywordToken.Kind == SyntaxKind.TrueKeyword;
                         return new LiteralExpressionSyntax(keywordToken, value);
                     }
-            }
-
-            var numberToken = Match(SyntaxKind.NumberToken);
-            return new LiteralExpressionSyntax(numberToken);
+                default:
+                    {
+                        var numberToken = MatchToken(SyntaxKind.NumberToken);
+                        return new LiteralExpressionSyntax(numberToken);
+                    }
+            } 
         }
     }
 }
