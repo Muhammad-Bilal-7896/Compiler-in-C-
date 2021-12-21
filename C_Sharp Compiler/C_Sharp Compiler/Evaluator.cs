@@ -29,7 +29,7 @@ namespace C_Sharp_Compiler
             {
                 var operand = EvaluateExpression(u.Operand);
 
-                switch (u.OperatorKind)
+                switch (u.Op.Kind)
                 {
                     case BoundUnaryOperatorKind.Identity:
                         return (int) operand;
@@ -38,7 +38,7 @@ namespace C_Sharp_Compiler
                     case BoundUnaryOperatorKind.LogicalNegation:
                         return !(bool) operand;
                     default:
-                        throw new Exception($"Unexpected unary operator {u.OperatorKind}");
+                        throw new Exception($"Unexpected unary operator {u.Op}");
                 }
             }
 
@@ -47,7 +47,7 @@ namespace C_Sharp_Compiler
                 var left = EvaluateExpression(b.Left);
                 var right = EvaluateExpression(b.Right);
 
-                switch (b.OperatorKind)
+                switch (b.Op.Kind)
                 {
                     case BoundBinaryOperatorKind.Addition:
                         return (int)left + (int)right;
@@ -62,7 +62,7 @@ namespace C_Sharp_Compiler
                     case BoundBinaryOperatorKind.LogicalOr:
                         return (bool)left || (bool)right;
                     default:
-                        throw new Exception($"Unexpected binary operator {b.OperatorKind}");
+                        throw new Exception($"Unexpected binary operator {b.Op}");
                 }
             }
 

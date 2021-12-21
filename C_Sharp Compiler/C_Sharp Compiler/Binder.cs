@@ -36,101 +36,132 @@ namespace C_Sharp_Compiler
         private BoundExpression BindUnaryExpression(UnaryExpressionSyntax syntax)
         {
             var boundOperand = BindExpression(syntax.Operand);
-            var boundOperatorKind = BindUnaryOperatorKind(syntax.OperatorToken.Kind, boundOperand.Type);
+            var boundOperator = BoundUnaryOperator.Bind(syntax.OperatorToken.Kind, boundOperand.Type);
 
-            if (boundOperatorKind == null)
+            if (boundOperator == null)
             {
                 _diagnostics.Add($"Unary operator '{syntax.OperatorToken.Text}' is not defined for type {boundOperand.Type}.");
                 return boundOperand;
             }
 
-            return new BoundUnaryExpression(boundOperatorKind.Value, boundOperand);
+            return new BoundUnaryExpression(boundOperator, boundOperand);
         }
 
         private BoundExpression BindBinaryExpression(BinaryExpressionSyntax syntax)
         {
             var boundLeft = BindExpression(syntax.Left);
             var boundRight = BindExpression(syntax.Right);
-            var boundOperatorKind = BindBinaryOperatorKind(syntax.OperatorToken.Kind, boundLeft.Type, boundRight.Type);
+            var boundOperator = BoundBinaryOperator.Bind(syntax.OperatorToken.Kind, boundLeft.Type, boundRight.Type);
 
-            if (boundOperatorKind == null)
+            if (boundOperator == null)
             {
                 _diagnostics.Add($"Binary operator '{syntax.OperatorToken.Text}' is not defined for types {boundLeft.Type} and {boundRight.Type}.");
                 return boundLeft;
             }
 
-            return new BoundBinaryExpression(boundLeft, boundOperatorKind.Value, boundRight);
+            return new BoundBinaryExpression(boundLeft, boundOperator, boundRight);
+        }
+    }
+
+    internal sealed class BoundBinaryOperator
+    {
+        private BoundBinaryOperator(SyntaxKind syntaxKind, BoundBinaryOperatorKind kind, Type type)
+         : this(syntaxKind, kind, type, type, type)
+        {
+
         }
 
-        private BoundUnaryOperatorKind? BindUnaryOperatorKind(SyntaxKind kind, Type operandType)
+        private BoundBinaryOperator(SyntaxKind syntaxKind, BoundBinaryOperatorKind kind, Type leftType, Type rightTye, Type resultType)
         {
-            if (operandType == typeof(int))
-            {
-                switch (kind)
-                {
-                    case SyntaxKind.PlusToken:
-                        return BoundUnaryOperatorKind.Identity;
-                    case SyntaxKind.MinusToken:
-                        return BoundUnaryOperatorKind.Negation;
-                }
-            }
-
-            if (operandType == typeof(bool))
-            {
-                switch (kind)
-                {
-                    case SyntaxKind.BangToken:
-                        return BoundUnaryOperatorKind.LogicalNegation;
-                }
-            }
-
-            return null;
+            SyntaxKind = syntaxKind;
+            Kind = kind;
+            LeftType = leftType;
+            RightTye = rightTye;
+            ResultType = resultType;
         }
 
-        private BoundBinaryOperatorKind? BindBinaryOperatorKind(SyntaxKind kind, Type leftType, Type rightType)
-        {
-            if (leftType == typeof(int) && rightType == typeof(int))
-            {
-                switch (kind)
-                {
-                    case SyntaxKind.PlusToken:
-                        return BoundBinaryOperatorKind.Addition;
-                    case SyntaxKind.MinusToken:
-                        return BoundBinaryOperatorKind.Subtraction;
-                    case SyntaxKind.StarToken:
-                        return BoundBinaryOperatorKind.Multiplication;
-                    case SyntaxKind.SlashToken:
-                        return BoundBinaryOperatorKind.Division;
-                }
-            }
+        public SyntaxKind SyntaxKind { get; }
+        public BoundBinaryOperatorKind Kind { get; }
+        public Type LeftType { get; }
+        public Type RightTye { get; }
+        public Type ResultType { get; }
 
-            if (leftType == typeof(bool) && rightType == typeof(bool))
+        private static BoundBinaryOperator[] _operators =
+        {
+            new BoundBinaryOperator(SyntaxKind.PlusToken, BoundBinaryOperatorKind.Addition, typeof(int)),
+            new BoundBinaryOperator(SyntaxKind.MinusToken, BoundBinaryOperatorKind.Subtraction, typeof(int)),
+            new BoundBinaryOperator(SyntaxKind.StarToken, BoundBinaryOperatorKind.Multiplication, typeof(int)),
+            new BoundBinaryOperator(SyntaxKind.SlashToken, BoundBinaryOperatorKind.Division, typeof(int)),
+
+            new BoundBinaryOperator(SyntaxKind.AmpersandAmpersandToken, BoundBinaryOperatorKind.LogicalAnd, typeof(bool)),
+            new BoundBinaryOperator(SyntaxKind.PipePipeToken, BoundBinaryOperatorKind.LogicalOr, typeof(bool)),
+        };
+
+        public static BoundBinaryOperator Bind(SyntaxKind syntaxKind, Type leftType, Type rightType)
+        {
+            foreach (var op in _operators)
             {
-                switch (kind)
-                {
-                    case SyntaxKind.AmpersandAmpersandToken:
-                        return BoundBinaryOperatorKind.LogicalAnd;
-                    case SyntaxKind.PipePipeToken:
-                        return BoundBinaryOperatorKind.LogicalOr;
-                }
+                if (op.SyntaxKind == syntaxKind && op.LeftType == leftType && op.RightTye == rightType)
+                    return op;
             }
 
             return null;
         }
     }
+
+    internal sealed class BoundUnaryOperator
+    {
+        private BoundUnaryOperator(SyntaxKind syntaxKind, BoundUnaryOperatorKind kind, Type operandType)
+            : this(syntaxKind, kind, operandType, operandType)
+        {
+        }
+
+        private BoundUnaryOperator(SyntaxKind syntaxKind, BoundUnaryOperatorKind kind, Type operandType, Type resultType)
+        {
+            SyntaxKind = syntaxKind;
+            Kind = kind;
+            OperandType = operandType;
+            ResultType = resultType;
+        }
+
+        public SyntaxKind SyntaxKind { get; }
+        public BoundUnaryOperatorKind Kind { get; }
+        public Type OperandType { get; }
+        public Type ResultType { get; }
+
+        private static BoundUnaryOperator[] _operators =
+        {
+            new BoundUnaryOperator(SyntaxKind.BangToken, BoundUnaryOperatorKind.LogicalNegation, typeof(bool)),
+
+            new BoundUnaryOperator(SyntaxKind.PlusToken, BoundUnaryOperatorKind.Identity, typeof(int)),
+            new BoundUnaryOperator(SyntaxKind.MinusToken, BoundUnaryOperatorKind.Negation, typeof(int)),
+        };
+
+        public static BoundUnaryOperator Bind(SyntaxKind syntaxKind, Type operandType)
+        {
+            foreach (var op in _operators)
+            {
+                if (op.SyntaxKind == syntaxKind && op.OperandType == operandType)
+                    return op;
+            }
+
+            return null;
+        }
+    }
+
     internal sealed class BoundBinaryExpression : BoundExpression
     {
-        public BoundBinaryExpression(BoundExpression left, BoundBinaryOperatorKind operatorKind, BoundExpression right)
+        public BoundBinaryExpression(BoundExpression left, BoundBinaryOperator op, BoundExpression right)
         {
             Left = left;
-            OperatorKind = operatorKind;
+            Op = op;
             Right = right;
         }
 
         public override BoundNodeKind Kind => BoundNodeKind.UnaryExpression;
         public override Type Type => Left.Type;
         public BoundExpression Left { get; }
-        public BoundBinaryOperatorKind OperatorKind { get; }
+        public BoundBinaryOperator Op { get; }
         public BoundExpression Right { get; }
     }
 
@@ -177,15 +208,15 @@ namespace C_Sharp_Compiler
 
     internal sealed class BoundUnaryExpression : BoundExpression
     {
-        public BoundUnaryExpression(BoundUnaryOperatorKind operatorKind, BoundExpression operand)
+        public BoundUnaryExpression(BoundUnaryOperator op, BoundExpression operand)
         {
-            OperatorKind = operatorKind;
+            Op = op;
             Operand = operand;
         }
 
         public override BoundNodeKind Kind => BoundNodeKind.UnaryExpression;
         public override Type Type => Operand.Type;
-        public BoundUnaryOperatorKind OperatorKind { get; }
+        public BoundUnaryOperator Op { get; }
         public BoundExpression Operand { get; }
     }
 
