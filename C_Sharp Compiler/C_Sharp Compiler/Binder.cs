@@ -93,6 +93,8 @@ namespace C_Sharp_Compiler
             new BoundBinaryOperator(SyntaxKind.StarToken, BoundBinaryOperatorKind.Multiplication, typeof(int)),
             new BoundBinaryOperator(SyntaxKind.SlashToken, BoundBinaryOperatorKind.Division, typeof(int)),
 
+            new BoundBinaryOperator(SyntaxKind.EqualsEqualsToken, BoundBinaryOperatorKind.EqualsEqualsToken, typeof(int)),
+
             new BoundBinaryOperator(SyntaxKind.AmpersandAmpersandToken, BoundBinaryOperatorKind.LogicalAnd, typeof(bool)),
             new BoundBinaryOperator(SyntaxKind.PipePipeToken, BoundBinaryOperatorKind.LogicalOr, typeof(bool)),
         };
@@ -173,7 +175,8 @@ namespace C_Sharp_Compiler
         Multiplication,
         Division,
         LogicalAnd,
-        LogicalOr
+        LogicalOr,
+        EqualsEqualsToken
     }
 
     internal abstract class BoundExpression : BoundNode
