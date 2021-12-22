@@ -82,7 +82,7 @@ namespace C_Sharp_Compiler
 
             Console.WriteLine();
 
-            indent += isLast ? "    " : "│   ";
+            indent += isLast ? "   " : "│  ";
 
             var lastChild = node.GetChildren().LastOrDefault();
 
