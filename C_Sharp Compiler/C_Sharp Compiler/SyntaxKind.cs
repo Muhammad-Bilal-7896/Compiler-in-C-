@@ -28,6 +28,10 @@ namespace C_Sharp_Compiler
         PipePipeToken,
         TrueKeyword,
         EqualsEqualsToken,
-        BangEqualsToken
+        BangEqualsToken,
+        NameExpression,
+        AssignmentExpresion,
+        EqualsToken,
+        AssignmentExpression
     }
 }
