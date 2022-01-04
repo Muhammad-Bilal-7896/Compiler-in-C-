@@ -30,12 +30,11 @@ namespace C_Sharp_Compiler
                 }
 
                 var syntaxTree = SyntaxTree.Parse(line);
+                //For compilation
+                var compilation = new Compilation(syntaxTree);
+                var result = compilation.Evaluate();
 
-                //For binding
-                var binder = new Binder();
-                var boundExpression = binder.BindExpression(syntaxTree.Root);
-
-                var diagnostics = syntaxTree.Diagnostics.Concat(binder.Diagnostics).ToArray();
+                var diagnostics = result.Diagnostics;
                 //For binding
 
 
@@ -49,19 +48,36 @@ namespace C_Sharp_Compiler
 
                 if (!diagnostics.Any())
                 {
-                    var e = new Evaluator(boundExpression);
-                    var result = e.Evaluate();
-                    Console.WriteLine(result);
+                    Console.WriteLine(result.Value);
                 }
                 else
                 {
                     var color = Console.ForegroundColor;
-                    Console.ForegroundColor = ConsoleColor.DarkRed;
+                  
 
                     foreach (var diagnostic in diagnostics)
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkRed;
                         Console.WriteLine(diagnostic);
+                        Console.ResetColor();
 
-                    Console.ForegroundColor = color;
+                        var prefix = line.Substring(0, diagnostic.Span.Start);
+                        var error = line.Substring(diagnostic.Span.Start, diagnostic.Span.Length);
+                        var suffix = line.Substring(diagnostic.Span.End);
+
+                        Console.Write("    ");
+                        Console.Write(prefix);
+
+                        Console.ForegroundColor = ConsoleColor.DarkRed;
+                        Console.Write(error);
+                        Console.ResetColor();
+
+                        Console.WriteLine(suffix);
+
+                        Console.WriteLine();
+                    }
+
+                   
                 }
             }
         }

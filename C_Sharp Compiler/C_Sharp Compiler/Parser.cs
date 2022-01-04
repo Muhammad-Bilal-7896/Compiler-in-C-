@@ -8,7 +8,7 @@ namespace C_Sharp_Compiler
     {
         private readonly SyntaxToken[] _tokens;
 
-        private List<string> _diagnostics = new List<string>();
+        private DiagnosticBag _diagnostics = new DiagnosticBag();
         private int _position;
 
         public Parser(string text)
@@ -32,7 +32,7 @@ namespace C_Sharp_Compiler
             _diagnostics.AddRange(lexer.Diagnostics);
         }
 
-        public IEnumerable<string> Diagnostics => _diagnostics;
+        public DiagnosticBag Diagnostics => _diagnostics;
 
         private SyntaxToken Peek(int offset)
         {
@@ -57,7 +57,7 @@ namespace C_Sharp_Compiler
             if (Current.Kind == kind)
                 return NextToken();
 
-            _diagnostics.Add($"ERROR: Unexpected token <{Current.Kind}>, expected <{kind}>");
+            _diagnostics.ReportUnexpectedToken(Current.Span,Current.Kind,kind);
             return new SyntaxToken(kind, Current.Position, null, null);
         }
 
